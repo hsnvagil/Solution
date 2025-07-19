@@ -6,13 +6,15 @@ namespace App.Infrastructure.Providers;
 
 public class InMemoryHomeDataProvider : IHomeDataProvider {
     private readonly ConcurrentDictionary<Home, List<DateOnly>> _homes;
+    private readonly IClock _clock;
 
-    public InMemoryHomeDataProvider() {
+    public InMemoryHomeDataProvider(IClock clock) {
+        _clock = clock;
         _homes = LoadHomes();
     }
 
     private ConcurrentDictionary<Home, List<DateOnly>> LoadHomes() {
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var today = DateOnly.FromDateTime(_clock.Now);
         var start1 = today.AddDays(-3); 
         var start2 = today;
 

@@ -1,10 +1,13 @@
 ﻿using App.Core.Common.Constants;
+using App.Core.Interfaces;
 using FluentValidation;
 
 namespace App.Application.UseCases.Queries.GetAvailableHomes;
 
 public class GetAvailableHomesRequestValidator : AbstractValidator<GetAvailableHomesRequest> {
-    public GetAvailableHomesRequestValidator() {
+    private readonly IClock _clock;
+    public GetAvailableHomesRequestValidator(IClock clock) {
+        _clock = clock;
         RuleFor(x => x.StartDate)
             .NotEmpty().WithMessage(ErrorTokens.HomeAvailabilityStartDateRequired)
             .Must(BeValidDate).WithMessage(ErrorTokens.HomeAvailabilityStartDateInvalidFormat)
@@ -27,7 +30,7 @@ public class GetAvailableHomesRequestValidator : AbstractValidator<GetAvailableH
 
     private bool NotInThePast(string dateStr) {
         if (!DateOnly.TryParseExact(dateStr, DateFormat, out var date)) return false;
-        return date >= DateOnly.FromDateTime(DateTime.Today);
+        return date >= DateOnly.FromDateTime(_clock.Now);
     }
 
     private bool HaveValidDateRange(GetAvailableHomesRequest request) {

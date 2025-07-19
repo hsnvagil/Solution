@@ -1,5 +1,7 @@
 using System.Net;
 using App.Core.Common.Constants;
+using App.Core.Interfaces;
+using App.Infrastructure.Time;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json.Linq;
@@ -9,11 +11,12 @@ namespace App.Test;
 public class GetAvailableHomesTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>> {
     private readonly HttpClient _client = factory.CreateClient();
-
+    private readonly IClock _clock = new AzerbaijanClock();
+    
     [Fact]
     public async Task Should_ReturnHomes_When_DatesAreValid() {
-        var startDate = DateTime.Today.ToString("yyyy-MM-dd");
-        var endDate = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+        var startDate = _clock.Now.ToString("yyyy-MM-dd");
+        var endDate = _clock.Now.AddDays(1).ToString("yyyy-MM-dd");
 
         var response = await _client.GetAsync($"/api/available-homes?startDate={startDate}&endDate={endDate}");
 
@@ -28,8 +31,8 @@ public class GetAvailableHomesTests(WebApplicationFactory<Program> factory)
 
     [Fact]
     public async Task Should_ReturnValidationError_When_StartDateIsAfterEndDate() {
-        var startDate = DateTime.Today.ToString("yyyy-MM-dd");
-        var endDate = DateTime.Today.AddDays(-5).ToString("yyyy-MM-dd");
+        var startDate = _clock.Now.ToString("yyyy-MM-dd");
+        var endDate = _clock.Now.AddDays(-5).ToString("yyyy-MM-dd");
 
         var response = await _client.GetAsync($"/api/available-homes?startDate={startDate}&endDate={endDate}");
 
@@ -45,8 +48,8 @@ public class GetAvailableHomesTests(WebApplicationFactory<Program> factory)
 
     [Fact]
     public async Task Should_ReturnValidationError_When_StartDateNotInPast() {
-        var startDate = DateTime.Today.AddDays(-2).ToString("yyyy-MM-dd");
-        var endDate = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+        var startDate = _clock.Now.AddDays(-2).ToString("yyyy-MM-dd");
+        var endDate = _clock.Now.AddDays(1).ToString("yyyy-MM-dd");
 
         var response = await _client.GetAsync($"/api/available-homes?startDate={startDate}&endDate={endDate}");
 

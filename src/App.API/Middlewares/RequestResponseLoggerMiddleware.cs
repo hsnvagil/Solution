@@ -13,8 +13,8 @@ namespace App.API.Middlewares;
 
 public class RequestResponseLoggerMiddleware(
     RequestDelegate next,
-    IRequestResponseLogger logger) {
-
+    IRequestResponseLogger logger,
+    IClock clock) {
     private readonly JsonSerializerSettings _serializerSettings = new() {
         ContractResolver = new CamelCasePropertyNamesContractResolver()
     };
@@ -23,7 +23,7 @@ public class RequestResponseLoggerMiddleware(
         IRequestResponseLogCreator logCreator) {
         var log = logCreator.Log;
 
-        log.RequestDate = DateTimeOffset.UtcNow;
+        log.RequestDate = clock.Now;
         var request = httpContext.Request;
 
         log.RequestMethod = request.Method;
@@ -67,7 +67,7 @@ public class RequestResponseLoggerMiddleware(
         log.ResponseStatus = response.StatusCode.ToString();
         log.ResponseHeaders = FormatHeaders(response.Headers);
         log.ResponseBody = jsonResponse;
-        log.ResponseDate = DateTimeOffset.UtcNow;
+        log.ResponseDate = clock.Now;
 
         var contextFeature =
             httpContext.Features.Get<IExceptionHandlerPathFeature>();

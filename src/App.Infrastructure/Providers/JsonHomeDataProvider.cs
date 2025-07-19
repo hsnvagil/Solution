@@ -8,8 +8,10 @@ namespace App.Infrastructure.Providers;
 
 public class JsonHomeDataProvider : IHomeDataProvider {
     private readonly ConcurrentDictionary<Home, List<DateOnly>> _homes;
+    private readonly IClock _clock;
 
-    public JsonHomeDataProvider() {
+    public JsonHomeDataProvider(IClock clock) {
+        _clock = clock;
         _homes = LoadHomesFromJson();
     }
 
@@ -24,7 +26,7 @@ public class JsonHomeDataProvider : IHomeDataProvider {
             PropertyNameCaseInsensitive = true
         });
 
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var today = DateOnly.FromDateTime(_clock.Now);
 
         var homePairs = rawHomes?
             .Select(h => new KeyValuePair<Home, List<DateOnly>>(
