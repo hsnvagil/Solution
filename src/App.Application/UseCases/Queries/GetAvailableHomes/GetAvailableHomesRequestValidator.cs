@@ -1,35 +1,38 @@
-﻿using FluentValidation;
+﻿using App.Core.Common.Constants;
+using FluentValidation;
 
 namespace App.Application.UseCases.Queries.GetAvailableHomes;
 
 public class GetAvailableHomesRequestValidator : AbstractValidator<GetAvailableHomesRequest> {
     public GetAvailableHomesRequestValidator() {
         RuleFor(x => x.StartDate)
-            .NotEmpty().WithMessage("Başlanğıc tarixi tələb olunur")
-            .Must(BeValidDate).WithMessage("Başlanğıc tarixi düzgün formatda olmalıdır (yyyy-MM-dd)")
-            .Must(NotInThePast).WithMessage("Başlanğıc tarixi bu gün və ya gələcək gün olmalıdır.");
+            .NotEmpty().WithMessage(ErrorTokens.HomeAvailabilityStartDateRequired)
+            .Must(BeValidDate).WithMessage(ErrorTokens.HomeAvailabilityStartDateInvalidFormat)
+            .Must(NotInThePast).WithMessage(ErrorTokens.HomeAvailabilityStartDateNotInPast);
 
         RuleFor(x => x.EndDate)
-            .NotEmpty().WithMessage("Bitmə tarixi tələb olunur")
-            .Must(BeValidDate).WithMessage("Bitmə tarixi düzgün formatda olmalıdır (yyyy-MM-dd)");
+            .NotEmpty().WithMessage(ErrorTokens.HomeAvailabilityEndDateRequired)
+            .Must(BeValidDate).WithMessage(ErrorTokens.HomeAvailabilityEndDateInvalidFormat);
 
         RuleFor(x => x)
             .Must(HaveValidDateRange)
-            .WithMessage("Başlanğıc tarixi bitmə tarixindən kiçik və ya ona bərabər olmalıdır.");
+            .WithMessage(ErrorTokens.HomeAvailabilityDateRangeInvalid);
     }
 
+    private const string DateFormat = "yyyy-MM-dd";
+
     private bool BeValidDate(string dateStr) {
-        return DateOnly.TryParseExact(dateStr, "yyyy-MM-dd", out _);
+        return DateOnly.TryParseExact(dateStr, DateFormat, out _);
     }
-    
+
     private bool NotInThePast(string dateStr) {
-        if (!DateOnly.TryParseExact(dateStr, "yyyy-MM-dd", out var date)) return false;
+        if (!DateOnly.TryParseExact(dateStr, DateFormat, out var date)) return false;
         return date >= DateOnly.FromDateTime(DateTime.Today);
     }
 
     private bool HaveValidDateRange(GetAvailableHomesRequest request) {
-        if (!DateOnly.TryParseExact(request.StartDate, "yyyy-MM-dd", out var startDate)) return false;
-        if (!DateOnly.TryParseExact(request.EndDate, "yyyy-MM-dd", out var endDate)) return false;
+        if (!DateOnly.TryParseExact(request.StartDate, DateFormat, out var startDate)) return false;
+        if (!DateOnly.TryParseExact(request.EndDate, DateFormat, out var endDate)) return false;
         return startDate <= endDate;
     }
 }
