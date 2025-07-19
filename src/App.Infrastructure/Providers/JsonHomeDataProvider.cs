@@ -2,6 +2,7 @@
 using System.Text.Json;
 using App.Core.Entities.Core;
 using App.Core.Interfaces;
+using App.Infrastructure.Models;
 
 namespace App.Infrastructure.Providers;
 
@@ -19,18 +20,17 @@ public class JsonHomeDataProvider : IHomeDataProvider {
             return new ConcurrentDictionary<Home, List<DateOnly>>();
 
         var json = File.ReadAllText(path);
-        var homes = JsonSerializer.Deserialize<List<Home>>(json, new JsonSerializerOptions {
+        var rawHomes = JsonSerializer.Deserialize<List<RawHomeJsonModel>>(json, new JsonSerializerOptions {
             PropertyNameCaseInsensitive = true
         });
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = DateOnly.FromDateTime(DateTime.Today);
 
-        var homePairs = homes?
-            .Where(h => h.AvailableSlots != null && h.AvailableSlots.Any())
+        var homePairs = rawHomes?
             .Select(h => new KeyValuePair<Home, List<DateOnly>>(
                 new Home { Id = h.Id, Name = h.Name },
-                h.AvailableSlots
-                    .Where(slot => slot >= today)
+                Enumerable.Range(0, h.DayCount)
+                    .Select(i => today.AddDays(h.StartOffset + i))
                     .ToList()
             )) ?? Enumerable.Empty<KeyValuePair<Home, List<DateOnly>>>();
 

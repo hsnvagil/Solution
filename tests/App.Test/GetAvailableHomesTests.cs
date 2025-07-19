@@ -1,4 +1,5 @@
 using System.Net;
+using App.Core.Common.Constants;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json.Linq;
@@ -11,8 +12,8 @@ public class GetAvailableHomesTests(WebApplicationFactory<Program> factory)
 
     [Fact]
     public async Task Should_ReturnHomes_When_DatesAreValid() {
-        var startDate = "2025-07-18";
-        var endDate = "2025-07-20";
+        var startDate = DateTime.Today.ToString("yyyy-MM-dd");
+        var endDate = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
 
         var response = await _client.GetAsync($"/api/available-homes?startDate={startDate}&endDate={endDate}");
 
@@ -27,8 +28,8 @@ public class GetAvailableHomesTests(WebApplicationFactory<Program> factory)
 
     [Fact]
     public async Task Should_ReturnValidationError_When_StartDateIsAfterEndDate() {
-        var startDate = "2025-07-20";
-        var endDate = "2025-07-15";
+        var startDate = DateTime.Today.ToString("yyyy-MM-dd");
+        var endDate = DateTime.Today.AddDays(-5).ToString("yyyy-MM-dd");
 
         var response = await _client.GetAsync($"/api/available-homes?startDate={startDate}&endDate={endDate}");
 
@@ -39,6 +40,6 @@ public class GetAvailableHomesTests(WebApplicationFactory<Program> factory)
         json["data"]?.Type.Should().Be(JTokenType.Null);
         json["errorMessage"]
             ?.ToString().Should()
-            .Contain("Başlanğıc tarixi bitmə tarixindən kiçik və ya ona bərabər olmalıdır.");
+            .Contain(ErrorTokens.HomeAvailabilityDateRangeInvalid);
     }
 }

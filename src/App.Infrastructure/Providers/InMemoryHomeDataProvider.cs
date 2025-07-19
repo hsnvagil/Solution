@@ -12,26 +12,18 @@ public class InMemoryHomeDataProvider : IHomeDataProvider {
     }
 
     private ConcurrentDictionary<Home, List<DateOnly>> LoadHomes() {
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var start1 = today.AddDays(-3); 
+        var start2 = today;
 
         var rawHomes = new List<(Home home, List<DateOnly> slots)> {
             (
                 new Home { Id = 123, Name = "Home 1" },
-                [
-                    new(2025, 07, 15),
-                    new(2025, 07, 16),
-                    new(2025, 07, 17),
-                    new(2025, 07, 18),
-                    new(2025, 07, 19),
-                    new(2025, 07, 20)
-                ]
+                Enumerable.Range(0, 6).Select(offset => start1.AddDays(offset)).ToList()
             ),
             (
                 new Home { Id = 456, Name = "Home 2" },
-                [
-                    new(2025, 07, 18),
-                    new(2025, 07, 19)
-                ]
+                Enumerable.Range(0, 2).Select(offset => start2.AddDays(offset)).ToList()
             )
         };
 
