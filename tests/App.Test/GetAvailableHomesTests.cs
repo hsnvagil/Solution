@@ -42,4 +42,21 @@ public class GetAvailableHomesTests(WebApplicationFactory<Program> factory)
             ?.ToString().Should()
             .Contain(ErrorTokens.HomeAvailabilityDateRangeInvalid);
     }
+
+    [Fact]
+    public async Task Should_ReturnValidationError_When_StartDateNotInPast() {
+        var startDate = DateTime.Today.AddDays(-2).ToString("yyyy-MM-dd");
+        var endDate = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+
+        var response = await _client.GetAsync($"/api/available-homes?startDate={startDate}&endDate={endDate}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+        var json = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+        json["resultStatus"]?["statusCode"]?.Value<int>().Should().Be(2);
+        json["data"]?.Type.Should().Be(JTokenType.Null);
+        json["errorMessage"]
+            ?.ToString().Should()
+            .Contain(ErrorTokens.HomeAvailabilityStartDateNotInPast);
+    }
 }
