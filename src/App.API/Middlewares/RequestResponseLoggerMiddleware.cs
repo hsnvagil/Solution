@@ -143,16 +143,15 @@ public class RequestResponseLoggerMiddleware(
     }
 
     private Dictionary<string, string> FormatHeaders(IHeaderDictionary headers) {
-        var pairs = new Dictionary<string, string>();
-        foreach (var header in headers)
-                pairs.Add(header.Key, header.Value!);
-
-        return pairs;
+        return headers.ToDictionary(
+            h => h.Key,
+            h => string.Join(",", h.Value.ToArray())
+        );
     }
 
     private List<KeyValuePair<string, string>> FormatQueries(string queryString) {
         return (from query in queryString.TrimStart('?').Split("&")
-            select query.Split("=")
+            select query.Split("=",2)
             into items
             let key = items.Length != 0 ? items[0] : string.Empty
             let value = items.Length >= 2 ? items[1] : string.Empty
